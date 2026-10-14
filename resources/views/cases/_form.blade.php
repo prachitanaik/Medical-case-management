@@ -8,28 +8,32 @@
     <div class="form-grid">
         <div class="field">
             <label for="case_number">Case Number</label>
-            <input id="case_number" name="case_number" value="{{ old('case_number', $case->case_number) }}"
+            <input id="case_number" type="text" name="case_number" maxlength="50"
+                   value="{{ old('case_number', $case->case_number) }}"
                    class="{{ $errors->has('case_number') ? 'invalid' : '' }}" required>
             @error('case_number') <div class="error">{{ $message }}</div> @enderror
         </div>
 
         <div class="field">
             <label for="patient_reference">Patient Reference (dummy code)</label>
-            <input id="patient_reference" name="patient_reference" value="{{ old('patient_reference', $case->patient_reference) }}"
+            <input id="patient_reference" type="text" name="patient_reference" maxlength="100"
+                   value="{{ old('patient_reference', $case->patient_reference) }}"
                    class="{{ $errors->has('patient_reference') ? 'invalid' : '' }}" required>
             @error('patient_reference') <div class="error">{{ $message }}</div> @enderror
         </div>
 
         <div class="field">
             <label for="surgeon_name">Surgeon Name</label>
-            <input id="surgeon_name" name="surgeon_name" value="{{ old('surgeon_name', $case->surgeon_name) }}"
+            <input id="surgeon_name" type="text" name="surgeon_name" maxlength="150"
+                   value="{{ old('surgeon_name', $case->surgeon_name) }}"
                    class="{{ $errors->has('surgeon_name') ? 'invalid' : '' }}" required>
             @error('surgeon_name') <div class="error">{{ $message }}</div> @enderror
         </div>
 
         <div class="field">
             <label for="implant_type">Implant Type</label>
-            <input id="implant_type" name="implant_type" value="{{ old('implant_type', $case->implant_type) }}"
+            <input id="implant_type" type="text" name="implant_type" maxlength="150"
+                   value="{{ old('implant_type', $case->implant_type) }}"
                    class="{{ $errors->has('implant_type') ? 'invalid' : '' }}" required>
             @error('implant_type') <div class="error">{{ $message }}</div> @enderror
         </div>

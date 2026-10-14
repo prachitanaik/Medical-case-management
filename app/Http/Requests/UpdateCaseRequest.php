@@ -16,6 +16,22 @@ class UpdateCaseRequest extends StoreCaseRequest
         return $this->user()?->can('update', $this->route('case')) ?? false;
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    public function rules(): array
+    {
+        $rules = parent::rules();
+
+        if ($this->isMethod('PATCH')) {
+            return array_map(function (array $fieldRules) {
+                return array_merge(['sometimes'], $fieldRules);
+            }, $rules);
+        }
+
+        return $rules;
+    }
+
     protected function caseNumberRule(): Unique
     {
         return Rule::unique('cases', 'case_number')->ignore($this->route('case'));

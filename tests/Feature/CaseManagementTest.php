@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\CaseStatus;
+use App\Http\Resources\CaseResource;
 use App\Models\MedicalCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -375,5 +376,90 @@ class CaseManagementTest extends TestCase
         $this->getJson('/api/cases/999999')
             ->assertNotFound()
             ->assertJsonPath('success', false);
+    }
+
+    public function test_admin_can_patch_partial_case_fields_through_the_api(): void
+    {
+        $case = MedicalCase::factory()->create(['case_number' => 'CASE-0100', 'status' => 'Draft', 'priority' => 'Low']);
+        Sanctum::actingAs(User::factory()->admin()->create());
+
+        $this->patchJson("/api/cases/{$case->id}", ['status' => 'In Review'])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.status', 'In Review')
+            ->assertJsonPath('data.priority', 'Low');
+
+        $this->assertSame(CaseStatus::InReview, $case->fresh()->status);
+    }
+
+    public function test_suggest_case_number_increments_past_existing_numbers(): void
+    {
+        MedicalCase::factory()->create(['case_number' => 'CASE-0001']);
+        MedicalCase::factory()->create(['case_number' => 'CASE-0003']);
+
+        // Since 0001 exists and 0003 exists, when max id generates candidate that exists, it skips it.
+        $suggested = MedicalCase::suggestCaseNumber();
+        $this->assertFalse(MedicalCase::where('case_number', $suggested)->exists());
+        $this->assertMatchesRegularExpression('/^CASE-\d{4,}$/', $suggested);
+    }
+
+    public function test_case_list_supports_case_insensitive_sort_direction(): void
+    {
+        MedicalCase::factory()->create(['case_number' => 'CASE-0001']);
+        MedicalCase::factory()->create(['case_number' => 'CASE-0002']);
+        $viewer = User::factory()->viewer()->create();
+
+        $response = $this->actingAs($viewer)->get('/cases?sort=case_number&direction=DESC');
+        $response->assertOk();
+
+        $numbers = $response->viewData('cases')->pluck('case_number')->all();
+        $this->assertSame(['CASE-0002', 'CASE-0001'], $numbers);
+    }
+
+    public function test_search_finds_matching_cases_by_case_number_or_surgeon(): void
+    {
+        MedicalCase::factory()->create(['case_number' => 'CASE-9001', 'surgeon_name' => 'Dr. Jones']);
+        MedicalCase::factory()->create(['case_number' => 'CASE-9002', 'surgeon_name' => 'Dr. Smith']);
+        $viewer = User::factory()->viewer()->create();
+
+        $response = $this->actingAs($viewer)->get('/cases?search=Jones');
+        $response->assertOk();
+
+        $numbers = $response->viewData('cases')->pluck('case_number')->all();
+        $this->assertSame(['CASE-9001'], $numbers);
+    }
+
+    public function test_engineer_sees_view_edit_and_new_case_buttons_but_not_delete(): void
+    {
+        $case = MedicalCase::factory()->create(['case_number' => 'CASE-0100']);
+        $engineer = User::factory()->engineer()->create();
+
+        $this->actingAs($engineer)->get('/cases')
+            ->assertOk()
+            ->assertSee('New case')
+            ->assertSee('CASE-0100')
+            ->assertSee('>View<', false)
+            ->assertSee('>Edit<', false)
+            ->assertDontSee('>Delete<', false);
+    }
+
+    public function test_details_page_handles_null_creator_defensively(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $case = MedicalCase::factory()->create(['created_by' => $admin->id]);
+        $case->setRelation('creator', null);
+
+        $this->actingAs($admin)
+            ->view('cases.show', ['case' => $case])
+            ->assertSee('—');
+    }
+
+    public function test_case_resource_handles_null_creator_when_loaded(): void
+    {
+        $case = MedicalCase::factory()->create();
+        $case->setRelation('creator', null);
+
+        $resource = (new CaseResource($case))->resolve();
+        $this->assertNull($resource['creator']);
     }
 }

@@ -40,11 +40,11 @@
             <dt>Surgery Date</dt>
             <dd>{{ $case->surgery_date?->format('Y-m-d') ?? 'Not scheduled' }}</dd>
             <dt>Created By</dt>
-            <dd>{{ $case->creator->name }}</dd>
+            <dd>{{ $case->creator?->name ?? '—' }}</dd>
             <dt>Created At</dt>
-            <dd>{{ $case->created_at->format('Y-m-d H:i') }}</dd>
+            <dd>{{ $case->created_at?->format('Y-m-d H:i') ?? '—' }}</dd>
             <dt>Updated At</dt>
-            <dd>{{ $case->updated_at->format('Y-m-d H:i') }}</dd>
+            <dd>{{ $case->updated_at?->format('Y-m-d H:i') ?? '—' }}</dd>
         </dl>
     </div>
 @endsection

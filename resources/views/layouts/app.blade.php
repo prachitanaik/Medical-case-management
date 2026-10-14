@@ -15,7 +15,7 @@
                 <a href="{{ route('cases.index') }}">Cases</a>
             </nav>
             <div class="user">
-                <span>{{ auth()->user()->name }} ({{ auth()->user()->role->label() }})</span>
+                <span>{{ auth()->user()->name }} ({{ auth()->user()->role?->label() ?? 'User' }})</span>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="btn-link">Log out</button>

@@ -2,11 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\MedicalCase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\MedicalCase
+ * @mixin MedicalCase
  */
 class CaseResource extends JsonResource
 {
@@ -25,10 +26,10 @@ class CaseResource extends JsonResource
             'priority' => $this->priority->value,
             'surgery_date' => $this->surgery_date?->format('Y-m-d'),
             'created_by' => $this->created_by,
-            'creator' => $this->whenLoaded('creator', fn () => [
+            'creator' => $this->whenLoaded('creator', fn () => $this->creator ? [
                 'id' => $this->creator->id,
                 'name' => $this->creator->name,
-            ]),
+            ] : null),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

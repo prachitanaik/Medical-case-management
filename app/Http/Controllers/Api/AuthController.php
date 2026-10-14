@@ -14,7 +14,8 @@ class AuthController extends Controller
 {
     public function login(LoginRequest $request): JsonResponse
     {
-        $user = User::query()->where('email', $request->validated('email'))->first();
+        $email = strtolower(trim($request->validated('email')));
+        $user = User::query()->whereRaw('LOWER(email) = ?', [$email])->first();
 
         if (! $user || ! Hash::check($request->validated('password'), $user->password)) {
             return ApiResponse::error('Invalid email or password.', 401);
@@ -35,7 +36,7 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         // Revoke only the token that made this request.
-        $request->user()->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()?->delete();
 
         return ApiResponse::success(null, 'Logged out.');
     }

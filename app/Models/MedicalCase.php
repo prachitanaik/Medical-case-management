@@ -95,7 +95,7 @@ class MedicalCase extends Model
         $sort = $filters['sort'] ?? null;
 
         if (in_array($sort, self::SORTABLE, true)) {
-            $direction = ($filters['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+            $direction = strtolower((string) ($filters['direction'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
             $query->orderBy($sort, $direction)->orderBy('id');
         } else {
             $query->latest('id');
@@ -107,6 +107,12 @@ class MedicalCase extends Model
     /** Suggest the next case number for the create form, e.g. CASE-0021. */
     public static function suggestCaseNumber(): string
     {
-        return 'CASE-'.str_pad((string) (((int) static::max('id')) + 1), 4, '0', STR_PAD_LEFT);
+        $next = ((int) static::max('id')) + 1;
+        do {
+            $candidate = 'CASE-'.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+            $next++;
+        } while (static::where('case_number', $candidate)->exists());
+
+        return $candidate;
     }
 }

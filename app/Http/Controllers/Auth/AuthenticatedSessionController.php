@@ -19,7 +19,10 @@ class AuthenticatedSessionController extends Controller
 
     public function store(LoginRequest $request): RedirectResponse
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = [
+            'email' => strtolower(trim($request->validated('email'))),
+            'password' => $request->validated('password'),
+        ];
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([

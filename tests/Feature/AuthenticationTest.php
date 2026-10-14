@@ -115,4 +115,36 @@ class AuthenticationTest extends TestCase
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
+
+    public function test_login_is_case_insensitive_for_email(): void
+    {
+        $user = User::factory()->admin()->create(['email' => 'admin@example.com']);
+
+        $this->post('/login', ['email' => 'Admin@Example.COM', 'password' => 'password'])
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_api_login_is_case_insensitive_for_email(): void
+    {
+        $user = User::factory()->admin()->create(['email' => 'admin@example.com']);
+
+        $this->postJson('/api/login', ['email' => 'ADMIN@EXAMPLE.COM', 'password' => 'password'])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+    }
+
+    public function test_unmatched_api_route_returns_unified_json_error(): void
+    {
+        $this->getJson('/api')
+            ->assertNotFound()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Resource not found.');
+
+        $this->getJson('/api/non-existent-endpoint')
+            ->assertNotFound()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Resource not found.');
+    }
 }
