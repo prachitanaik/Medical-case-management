@@ -53,6 +53,21 @@ class MedicalCase extends Model
     }
 
     /**
+     * Pick the supported list filters out of request input, keeping string values
+     * only (so a query like ?search[]=x cannot cause an error).
+     *
+     * @param  array<string, mixed>  $input
+     * @return array<string, string>
+     */
+    public static function filtersFrom(array $input): array
+    {
+        return array_filter(
+            array_intersect_key($input, array_flip(['search', 'status', 'priority', 'sort', 'direction'])),
+            'is_string'
+        );
+    }
+
+    /**
      * Apply the list filters: search, status, priority and sorting.
      *
      * @param  array{search?: ?string, status?: ?string, priority?: ?string, sort?: ?string, direction?: ?string}  $filters

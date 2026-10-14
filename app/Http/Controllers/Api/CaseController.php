@@ -22,7 +22,7 @@ class CaseController extends Controller
 
         $cases = MedicalCase::query()
             ->with('creator:id,name')
-            ->filter($request->only(['search', 'status', 'priority', 'sort', 'direction']))
+            ->filter(MedicalCase::filtersFrom($request->query()))
             ->paginate($perPage)
             ->withQueryString();
 

@@ -18,7 +18,7 @@ class CaseController extends Controller
     {
         Gate::authorize('viewAny', MedicalCase::class);
 
-        $filters = $request->only(['search', 'status', 'priority', 'sort', 'direction']);
+        $filters = MedicalCase::filtersFrom($request->query());
 
         $cases = MedicalCase::query()
             ->with('creator:id,name')
